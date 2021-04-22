@@ -1,11 +1,10 @@
 
+
 # FusionWorks JavaScript Style Guide
 
 We are using [Airbnb](https://github.com/airbnb/javascript) as foundation. *A mostly reasonable approach to JavaScript*
 
-```text
-Note that some frameworks or libraries can have their own Design Pattern, to which this Style Guide may not fit completely.
-```
+> Note that some frameworks or libraries can have their own Design Pattern, to which this Style Guide may not fit completely.
 
 **Our linters:**  
 TSLint(Typescript):   
@@ -17,11 +16,9 @@ ESLint(Javascript/NodeJs):
 [![npm downloads](https://img.shields.io/npm/dm/@fusionworks/es-lint.svg)](https://npmjs.org/@fusionworks/eslint-config)  
   
 
-**Airbnb references:**
+**Airbnb references:**  
 eslint-config-airbnb [![Downloads](https://img.shields.io/npm/dm/eslint-config-airbnb.svg)](https://www.npmjs.com/package/eslint-config-airbnb)  
 eslint-config-airbnb-base [![Downloads](https://img.shields.io/npm/dm/eslint-config-airbnb-base.svg)](https://www.npmjs.com/package/eslint-config-airbnb-base)  
-
-This guide is available in other languages too. See [Translation](#translation)
 
 ## Table of Contents
 
@@ -55,7 +52,6 @@ This guide is available in other languages too. See [Translation](#translation)
   1. [Code Quality Guardians  <img src="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/google/241/shield_1f6e1.png" height="13">](#code-quality-guardians--)
   1. [Performance](#performance)
   1. [Resources](#resources)
-  1. [Translation](#translation)
   1. [License](#license)
 
 ## References
@@ -1353,6 +1349,64 @@ This guide is available in other languages too. See [Translation](#translation)
     import bar from './bar';
     import baz from './baz';
     ```
+ <a name="modules--import-external-first"></a>
+  - [10.11](#modules--import-external-first) Always import external modules first. Divide internal and external with an empty line.
+    > Why? Imports might get messy as a file may have 20+ imports, having them in random order will lead to no trackability of external packages used.
+
+    ```javascript
+    // bad
+    import foo from 'foo';
+    import bar from './bar.jsx';
+    import baz from 'baz';
+
+    // good
+    import foo from 'foo';
+    import baz from 'baz';
+    
+    import bar from './bar.jsx';
+    ```
+    
+    <a name="modules--import-grouping"></a>
+  - [10.12](#modules--import-grouping) If you find that a file has more than 10 imports please divide them by an empty line
+    > Why? Having multiple imports of many types may result in search of where you imported X.
+
+    ```javascript
+    // bad
+    import foo from './foo';
+    import baz from './baz';
+    import moment from 'moment';
+    import CONSTANT_A from './constant_a';
+    import helperX from './helper_x';
+    import utilityY from './helper_y';
+    import CONSTANT_B from './constant_b';
+    import _ from 'lodash';
+    import {
+      ENUM_X,
+      ENUM_Y,
+      validator,
+    } from './enum';
+    import ENUM from './enum';
+
+
+    // good
+    import _ from 'lodash';
+    import moment from 'moment';
+    
+    import foo from './foo';
+    import baz from './baz';
+    import helperX from './helper_x';
+    import utilityY from './helper_y';
+    
+    import CONSTANT_A from './constant_a';
+    import CONSTANT_B from './constant_b';
+    import ENUM from './enum';
+    import {
+      ENUM_X,
+      ENUM_Y,
+      validator,
+    } from './enum';
+
+    ```
 
 **[⬆ back to top](#table-of-contents)**
 
@@ -1748,6 +1802,90 @@ This guide is available in other languages too. See [Translation](#translation)
     // 'coords' is now the 'data' object without its 'type' property.
     ```
 
+    <a name="variables--no-magic-numbers"></a>
+  - [13.9](#variables--no-magic-numbers) 'Magic numbers' are numbers that occur multiple times in code without an explicit meaning. They should preferably be replaced by named constants. eslint: no-magic-numbers  
+
+     ```javascript
+    // bad
+    function calculatePrice(price) {
+      return price + (price * 0.25);
+    }
+
+    // good
+    function calculatePrice(price) {
+      const TAX = 0.25;
+
+      return price + (price * TAX);
+    }
+
+    // bad
+    if (count === 2) {
+      // code
+    }
+
+    // good
+    const EXPLICIT_VARIABLE = 2;
+
+    if (count === SOME_MAGIC_STUFF) {
+      // code
+    }
+    ```
+
+  <a name="variables--enum-as-object"></a>
+  - [13.10](#variables--enum-as-object) When using an object as an ENUM,  use Object.freeze() make sure it's immutable.
+
+    ```javascript
+    // bad
+    const enum = {
+      SUNDAY: 1,
+      MONDAY: 2,
+    };
+
+    enum.SUNDAY // 1
+    enum.SUNDAY = 99
+    enum.SUNDAY // 99
+
+    enum.NEW_DAY = 8
+    enum.NEW_DAY // 8
+
+    // good
+    const enum = Object.freeze({
+      SUNDAY: 1,
+      MONDAY: 2,
+    });
+
+    enum.SUNDAY // 1
+    enum.SUNDAY = 99; // error
+
+    enum.NEW_DAY = 8; // error
+
+    enum = []; // error
+    ```
+
+<a name="variables--file-with-constants"></a>
+  - [13.11](#variables--file-with-constants) Keep your constants in a separate file made of constants only. In case you will need the same variable to be used in a different file you import only it. All the constant files should be made of immutable only objects.
+
+    ```javascript
+    // bad
+    const enum = {
+      SUNDAY: 1,
+      MONDAY: 2,
+    };
+
+    // code
+
+
+    // still bad
+    const { enum, tax, days } = require('date-constants');
+
+    // code
+
+    // good
+    const { ENUM, TAX, DAYS } = require('date-constants');
+
+    // code
+    ```
+
 **[⬆ back to top](#table-of-contents)**
 
 ## Hoisting
@@ -1885,23 +2023,23 @@ This guide is available in other languages too. See [Translation](#translation)
       // ...
     }
 
-    // good
-    if (name) {
-      // ...
-    }
-
     // bad
     if (name !== '') {
       // ...
     }
 
     // good
-    if (collection.length) {
+    if (name) {
       // ...
     }
 
     // bad
     if (collection.length > 0) {
+      // ...
+    }
+
+    // good
+    if (collection.length) {
       // ...
     }
     ```
@@ -3562,6 +3700,7 @@ This guide is available in other languages too. See [Translation](#translation)
 **[⬆ back to top](#table-of-contents)**
 
 ## Code Quality Guardians  <img src="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/google/241/shield_1f6e1.png" height="30">
+These are the persons you may ask questions regarding code-quality to.  
 
 <table>
   <tbody>
@@ -3694,27 +3833,6 @@ This guide is available in other languages too. See [Translation](#translation)
   - [JavaScript Jabber](https://devchat.tv/js-jabber/)
 
 **[⬆ back to top](#table-of-contents)**
-
-## Translation
-
-  This style guide is also available in other languages:
-
-  - ![br](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Brazil.png) **Brazilian Portuguese**: [armoucar/javascript-style-guide](https://github.com/armoucar/javascript-style-guide)
-  - ![bg](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Bulgaria.png) **Bulgarian**: [borislavvv/javascript](https://github.com/borislavvv/javascript)
-  - ![ca](https://raw.githubusercontent.com/fpmweb/javascript-style-guide/master/img/catala.png) **Catalan**: [fpmweb/javascript-style-guide](https://github.com/fpmweb/javascript-style-guide)
-  - ![cn](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/China.png) **Chinese (Simplified)**: [lin-123/javascript](https://github.com/lin-123/javascript)
-  - ![tw](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Taiwan.png) **Chinese (Traditional)**: [jigsawye/javascript](https://github.com/jigsawye/javascript)
-  - ![fr](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/France.png) **French**: [nmussy/javascript-style-guide](https://github.com/nmussy/javascript-style-guide)
-  - ![de](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Germany.png) **German**: [timofurrer/javascript-style-guide](https://github.com/timofurrer/javascript-style-guide)
-  - ![it](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Italy.png) **Italian**: [sinkswim/javascript-style-guide](https://github.com/sinkswim/javascript-style-guide)
-  - ![jp](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Japan.png) **Japanese**: [mitsuruog/javascript-style-guide](https://github.com/mitsuruog/javascript-style-guide)
-  - ![kr](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/South-Korea.png) **Korean**: [ParkSB/javascript-style-guide](https://github.com/ParkSB/javascript-style-guide)
-  - ![ru](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Russia.png) **Russian**: [leonidlebedev/javascript-airbnb](https://github.com/leonidlebedev/javascript-airbnb)
-  - ![es](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Spain.png) **Spanish**: [paolocarrasco/javascript-style-guide](https://github.com/paolocarrasco/javascript-style-guide)
-  - ![th](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Thailand.png) **Thai**: [lvarayut/javascript-style-guide](https://github.com/lvarayut/javascript-style-guide)
-  - ![tr](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Turkey.png) **Turkish**: [eraycetinay/javascript](https://github.com/eraycetinay/javascript)
-  - ![ua](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Ukraine.png) **Ukrainian**: [ivanzusko/javascript](https://github.com/ivanzusko/javascript)
-  - ![vn](https://raw.githubusercontent.com/gosquared/flags/master/flags/flags/shiny/24/Vietnam.png) **Vietnam**: [dangkyokhoang/javascript-style-guide](https://github.com/dangkyokhoang/javascript-style-guide)
 
 ## License
 
